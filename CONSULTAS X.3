@@ -1,0 +1,404 @@
+GUIA 1.4
+--1.4 CASO 1
+
+SELECT
+    TO_CHAR(numrun_cli,'99g999g999')
+    ||'-'
+    ||dvrun_cli AS "RUN CLIENTE"
+    ,INITCAP(appaterno_cli
+    ||' '
+    ||SUBSTR(apmaterno_cli,1,1)
+    ||'. '
+    ||pnombre_cli
+    ||' '
+    ||snombre_cli) AS "NOMBRE CLIENTE"
+    ,direccion AS "DIRECCION"
+    ,NVL(TO_CHAR(fono_fijo_cli),'NO POSEE TELEFONO FIJO') AS "TELEFONO FIJO"
+    ,NVL(TO_CHAR(celular_cli),'NO POSEE CELULAR') AS "CELULAR"
+    ,id_comuna AS "COMUNA"
+FROM
+    cliente
+    ORDER BY id_comuna ASC;
+  
+---------------------------------------------------------------------------------------------------------------------------------------------------  
+--1.4 CASO 2
+
+SELECT
+    'El empleado '
+    ||appaterno_emp
+    ||' '
+    ||apmaterno_emp
+    ||' '
+    ||pnombre_emp
+    ||' '
+    ||'estuvo de cumpleaños el '||EXTRACT(DAY FROM fecha_nac)
+    ||' '
+    ||TRIM(TO_CHAR(fecha_nac, 'MONTH'))
+    ||'.'
+    ||' cumplio '
+    || trunc ((to_number(to_char(sysdate,'YYYYMMDD')) - TO_NUMBER(TO_CHAR(FECHA_NAC,'YYYYMMDD')))/10000)
+    ||' años.' AS "LISTADO DE CUMPLEAÑOS"
+FROM
+    empleado;
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+--1.4 CASO 3
+
+SELECT
+    t.nombre_tipo_camion AS "TIPO CAMION"
+    ,c.nro_patente AS "NRO PATENTE"
+    ,c.anio+1 AS "AÑO"
+    ,'$'||TO_CHAR(c.valor_arriendo_dia,'99g999') AS "VALOR ARRIENDO DIA"
+    ,'$'||NVL(TO_CHAR(c.valor_garantia_dia),'0') AS "VALOR GARANTIA DIA"
+    ,'$'||NVL(TO_CHAR(c.valor_arriendo_dia+c.valor_garantia_dia),'0') AS "VALOR TOTAL DIA"
+FROM
+    camion c JOIN tipo_camion t
+    ON c.id_tipo_camion = t.id_tipo_camion
+    ORDER BY t.nombre_tipo_camion;
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+--1.4 CASO 4
+ 
+SELECT
+    EXTRACT(MONTH FROM SYSDATE)
+    ||'/'
+    ||EXTRACT(YEAR FROM SYSDATE) AS "FECHA PROCESO"
+    ,TO_CHAR(numrun_emp,'99G999G999')
+    ||'-'
+    ||dvrun_emp AS "RUN EMPLEADO"
+    ,pnombre_emp
+    ||' '
+    ||snombre_emp
+    ||' '
+    ||appaterno_emp
+    ||' '
+    ||apmaterno_emp AS "NOMBRE EMPLEADO"
+    ,'$'
+    ||TRIM(TO_CHAR(sueldo_base,'99G999G999')) AS "SUELDO BASE"
+    ,'$'
+    ||TRIM(TO_CHAR(CASE
+    WHEN sueldo_base BETWEEN 320000 and 450000 THEN (0.05*200000000)
+    WHEN sueldo_base BETWEEN 450001 and 600000 THEN (0.035*200000000)
+    WHEN sueldo_base BETWEEN 600001 and 900000 THEN (0.025*200000000)
+    WHEN sueldo_base BETWEEN 900001 and 1800000 THEN (0.015*200000000)
+    WHEN sueldo_base <= 1800000 THEN (0.01*200000000)
+    ELSE SUELDO_BASE
+    END,'99G999G999')) AS "BONO POR UTILIDADES"
+FROM
+    empleado
+    ORDER BY APPATERNO_EMP asc;
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+--CASO 5
+
+
+SELECT 
+TO_CHAR(NUMRUN_EMP,'99g999g999')
+||'-'
+||DVRUN_EMP AS "RUN_EMPLEADO"
+,PNOMBRE_EMP
+||' '
+||SNOMBRE_EMP
+||' '
+||APPATERNO_EMP
+||' '
+||APMATERNO_EMP AS "NOMBRE EMPLEADO"
+,ROUND (MONTHS_BETWEEN(SYSDATE,FECHA_CONTRATO)/12) AS "AÑOS_CONTRATADO"
+,'$'
+||TRIM(TO_CHAR(SUELDO_BASE,'99g999g999')) AS "SUELDO_BASE"
+,'$'
+||TRIM(TO_CHAR(ROUND((SUELDO_BASE*ROUND(MONTHS_BETWEEN(SYSDATE,FECHA_CONTRATO)/12))/100),'9G999G999')) AS "VALOR_MOVILIZACIÓN"
+,'$'
+||TRIM(TO_CHAR(CASE 
+WHEN SUELDO_BASE BETWEEN 1 AND 450000 THEN (ROUND(SUELDO_BASE*(SUBSTR(to_char(SUELDO_BASE),1,2))/100))
+WHEN SUELDO_BASE >= 450001 THEN (ROUND(SUELDO_BASE*(SUBSTR(to_char(SUELDO_BASE),1,1))/100))
+ELSE SUELDO_BASE
+END,'99G999G999')) AS "BONIF.EXTRA_MOVILIZACIÓN"
+
+,'$'
+||TRIM(TO_CHAR(CASE 
+WHEN SUELDO_BASE BETWEEN 1 AND 450000 THEN (ROUND(SUELDO_BASE*(SUBSTR(to_char(SUELDO_BASE),1,2))/100))+ (ROUND((SUELDO_BASE*ROUND(MONTHS_BETWEEN(SYSDATE,FECHA_CONTRATO)/12))/100))
+WHEN SUELDO_BASE >= 450001 THEN (ROUND(SUELDO_BASE*(SUBSTR(to_char(SUELDO_BASE),1,1))/100))+ (ROUND((SUELDO_BASE*ROUND(MONTHS_BETWEEN(SYSDATE,FECHA_CONTRATO)/12))/100))
+END,'99G999G999')) AS "VALOR_MOVILIZACIÓN_TOTAL"
+
+FROM EMPLEADO
+ORDER BY APPATERNO_EMP asc
+;
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+--CASO 6
+
+SELECT
+EXTRACT(YEAR FROM SYSDATE) AS "AÑO_TRIBUTARIO"
+,TO_CHAR(NUMRUN_EMP,'99g999g999')
+||'-'
+||DVRUN_EMP AS "RUN_EMPLEADO"
+,PNOMBRE_EMP
+||' '
+||SNOMBRE_EMP
+||' '
+||APPATERNO_EMP
+||' '
+||APMATERNO_EMP AS "NOMBRE EMPLEADO"
+,(EXTRACT(MONTH FROM SYSDATE)) AS "MESES_TRABAJADOS_AÑO" 
+,ROUND (MONTHS_BETWEEN(SYSDATE,FECHA_CONTRATO)/12) AS "AÑOS_TRABAJADOS"
+,'$'
+||TRIM(TO_CHAR(SUELDO_BASE,'99G999G999')) AS "SUELDO_BASE_MENSUAL"
+,'$'
+||TRIM(TO_CHAR(SUELDO_BASE*12,'99G999G999')) AS "SUELDO_BASE_ANUAL"
+,'$'
+||TRIM(TO_CHAR(ROUND(SUELDO_BASE*12)*(ROUND(MONTHS_BETWEEN(SYSDATE,FECHA_CONTRATO)/12))/100,'99G999G999')) AS "BONO_AÑOS_ANUAL"
+,'$'
+||TRIM(TO_CHAR(ROUND((SUELDO_BASE*12)*0.12),'99G999G999')) AS "MOVILIZACIÓN_ANUAL"
+,'$'
+||TRIM(TO_CHAR(ROUND((SUELDO_BASE*12)*0.20),'99G999G999')) AS "COLACIÓN_ANUAL"
+,'$'
+||TRIM(TO_CHAR((SUELDO_BASE*12)+(ROUND((SUELDO_BASE*12)*(ROUND(MONTHS_BETWEEN(SYSDATE,FECHA_CONTRATO)/12))/100))+(ROUND((SUELDO_BASE*12)*0.12))+(ROUND((SUELDO_BASE*12)*0.20)),'99G999G999')) AS "SUELDO_BRUTO"
+,'$'
+||TRIM(TO_CHAR((SUELDO_BASE*12)+(ROUND((SUELDO_BASE*12)*(ROUND(MONTHS_BETWEEN(SYSDATE,FECHA_CONTRATO)/12))/100)),'99G999G999')) AS "RENTA_IMPONIBLE_ANUAL"
+FROM EMPLEADO
+ORDER BY APPATERNO_EMP asc;
+
+
+SELECT
+   
+    fecha_contrato
+  
+FROM
+    empleado;
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+--GUIA 2.3
+
+--CASO 1 
+
+SELECT
+    TO_CHAR(numrun,'99G999G999')
+    ||'-'
+    ||dvrun AS "RUN"
+    ,INITCAP(pnombre
+    ||' '
+    ||snombre
+    ||' '
+    ||appaterno
+    ||' '
+    ||apmaterno) AS "NOMBRE CLIENTE"
+    ,EXTRACT(DAY FROM fecha_nacimiento)
+    ||' de '
+    ||INITCAP(TO_CHAR(sysdate, 'MONTH')) AS "DIA DE CUMPLEAÑOS"
+    ,direccion
+    ||'/'
+    ||UPPER(nombre_region)
+FROM
+    cliente C JOIN region R
+    on  c.cod_region=r. cod_region
+    order by appaterno;
+ ---------------------------------------------------------------------------------------------------------------------------------------------------   
+--CASO 2
+
+SELECT
+    TO_CHAR(c.numrun,'99G999G999')
+    ||'-'
+    ||c.dvrun AS "RUN"
+    ,UPPER(c.pnombre
+    ||' '
+    ||c.snombre
+    ||' '
+    ||c.appaterno
+    ||''
+    ||c.apmaterno) AS "NOMBRE CLIENTE"
+    ,'$'
+    ||TRIM(to_char(ttc.monto_total_transaccion,'99g999g999')) AS "MONTO COMPRAS/AVANCES/S.AVANCES"
+    ,TRIM(TO_CHAR((ttc.monto_total_transaccion*250)/10000,'99G999G999')) AS "TOTAL PUNTOS ACUMULADOS"
+FROM
+    cliente C JOIN tarjeta_cliente t
+    on c.numrun=t.numrun
+    JOIN transaccion_tarjeta_cliente ttc ON(t.nro_tarjeta=ttc.nro_tarjeta)
+    WHERE EXTRACT(YEAR FROM fecha_transaccion)=EXTRACT(YEAR FROM SYSDATE)-1
+    ORDER BY "MONTO COMPRAS/AVANCES/S.AVANCES" DESC;
+    
+ ---------------------------------------------------------------------------------------------------------------------------------------------------  
+--CASO 3
+
+SELECT
+'0'||
+EXTRACT (MONTH FROM ttc.fecha_transaccion)
+||''
+||EXTRACT (YEAR FROM ttc.fecha_transaccion) AS "MES TRANSACCION"
+,ttt.NOMBRE_TPTRAN_TARJETA AS "TIPO TRANSACCION"
+,'$'
+||TRIM(TO_CHAR(SUM(TTC.monto_total_transaccion),'99G999G999')) AS "MONTO COMPRAS/AVANCES/S.AVANCES"
+,'$'
+||TRIM(CASE
+WHEN SUM(ttc.monto_total_transaccion) BETWEEN 100000  AND 1000000 THEN TO_CHAR(ROUND(SUM(ttc.monto_total_transaccion)*0.01),'999G999')
+WHEN SUM(ttc.monto_total_transaccion) BETWEEN 1000001 AND 2000000 THEN TO_CHAR(ROUND(SUM(ttc.monto_total_transaccion)*0.02),'999G999')
+WHEN SUM(ttc.monto_total_transaccion) BETWEEN 2000001 AND 4000000 THEN TO_CHAR(ROUND(SUM(ttc.monto_total_transaccion)*0.03),'999G999')
+WHEN SUM(ttc.monto_total_transaccion) BETWEEN 4000001 AND 6000000 THEN TO_CHAR(ROUND(SUM(ttc.monto_total_transaccion)*0.04),'999G999')
+WHEN SUM(ttc.monto_total_transaccion) > 6000001 THEN TO_CHAR(ROUND(SUM(ttc.monto_total_transaccion) * 0.07),'99G999G999')
+END) AS "APORTE A LA SBIF"
+FROM transaccion_tarjeta_cliente ttc JOIN tipo_transaccion_tarjeta ttt
+    ON ttc.cod_tptran_tarjeta=ttt.cod_tptran_tarjeta
+WHERE EXTRACT(YEAR FROM ttc.fecha_transaccion)=EXTRACT(YEAR FROM SYSDATE) 
+    AND ttc.cod_tptran_tarjeta IN (102,103)   
+GROUP BY ttt.nombre_tptran_tarjeta, EXTRACT (MONTH FROM ttc.fecha_transaccion),EXTRACT (YEAR FROM ttc.fecha_transaccion)
+HAVING SUM(ttc.monto_total_transaccion) > 100000
+ORDER BY EXTRACT (MONTH FROM ttc.fecha_transaccion) ASC;
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+--CASO 4
+
+
+SELECT 
+TO_CHAR(c.numrun,'99G999G999') 
+||'-'
+||c.dvrun AS "RUN CLIENTE"
+,c.pnombre
+||' '
+||c.snombre
+||' '
+||c.appaterno
+||' '
+||c.apmaterno AS "NOMBRE CLIENTE"
+,'$'
+||TRIM(TO_CHAR(SUM(ttc.monto_total_transaccion),'99G999G999')) AS "MONTO COMPRAS/AVANCES/S.AVANCES"
+,CASE
+WHEN SUM(ttc.monto_total_transaccion) BETWEEN 0 AND 100000 THEN 'SIN CATEGORIZACIÓN' -- WHEN PIC.MONTO_TOTAL_AHORRADO > 100000 < 1000000 THEN 'BRONCE'
+WHEN SUM(ttc.monto_total_transaccion) BETWEEN 100001 AND 1000000 THEN 'BRONCE'
+WHEN SUM(ttc.monto_total_transaccion) BETWEEN 1000001 AND 4000000 THEN 'PLATA'
+WHEN SUM(ttc.monto_total_transaccion) BETWEEN 4000001 AND 8000000 THEN 'SILVER'
+WHEN SUM(ttc.monto_total_transaccion) BETWEEN 8000001 AND 15000000 THEN 'GOLD'
+WHEN SUM(ttc.monto_total_transaccion)  > 15000001 THEN 'PLATINUM'
+END AS "CATEGORIZACIÓN CLIENTE"
+
+FROM cliente c  JOIN tarjeta_cliente TC ON (c.numrun=TC.numrun)
+    JOIN transaccion_tarjeta_cliente ttc ON(TC.nro_tarjeta=ttc.nro_tarjeta)
+
+GROUP BY c.numrun,c.dvrun,c.pnombre,c.snombre,c.appaterno,c.apmaterno    
+ORDER BY c.appaterno ASC, (SUM(ttc.monto_total_transaccion)) ASC;
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+--CASO 5
+
+SELECT 
+TO_CHAR(c.numrun,'99G999G999')
+||'-'
+|| c.dvrun AS "RUN CLIENTE"
+, INITCAP(LOWER(c.pnombre))
+||' '
+||SUBSTR(c.snombre,1,1)
+||'. '
+||INITCAP(LOWER(c.appaterno))
+||' '
+||INITCAP(LOWER(c.apmaterno)) AS "NOMBRE CLIENTE"
+, COUNT(ttc.cod_tptran_tarjeta) AS "TOTAL SUPER AVANCES VIGENTES"
+,'$'||TO_CHAR(SUM(monto_total_transaccion),'999G999') AS "MONTO TOTAL SUPER AVANCES"
+
+FROM cliente c  JOIN tarjeta_cliente tc ON (c.numrun=tc.numrun)
+    JOIN transaccion_tarjeta_cliente ttc ON(tc.nro_tarjeta=ttc.nro_tarjeta) 
+WHERE EXTRACT(YEAR FROM fecha_transaccion)=EXTRACT(YEAR FROM sysdate)
+    AND ttc.cod_tptran_tarjeta IN (103)
+GROUP BY c.pnombre, c.snombre, c.appaterno,c.apmaterno,c.numrun,c.dvrun,ttc.cod_tptran_tarjeta
+ORDER BY c.appaterno ASC;
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+--CASO 6
+
+SELECT 
+TO_CHAR(c.numrun,'99G999G999') 
+||'-'
+|| c.dvrun AS "RUN CLIENTE"
+, INITCAP(C.pnombre)
+||' '
+||c.snombre
+||' '
+||c.appaterno
+||' '
+||c.apmaterno AS "NOMBRE_CLIENTE"
+, c.direccion AS "DIRECCIÓN"
+, p.nombre_provincia AS "PROVINCIA"
+, r.nombre_region AS "REGION"
+,TRIM(CASE 
+    WHEN ttc.cod_tptran_tarjeta = 101 THEN COUNT(nro_transaccion)
+    ELSE 0 
+    END) AS "COMPRAS_VIGENTES"
+,TRIM(CASE 
+    WHEN to_char(ttc.cod_tptran_tarjeta) = 101 THEN to_char(SUM(ttc.monto_total_transaccion),'$99G999G999')
+    ELSE '$0'
+    END) AS "MONTO_TOTAL_COMPRAS"  
+,TRIM(CASE 
+    WHEN ttc.cod_tptran_tarjeta = 102 THEN COUNT(nro_transaccion)
+    ELSE 0 
+    END) AS "AVANCES_VIGENTES"
+,TRIM(CASE 
+    WHEN to_char(ttc.cod_tptran_tarjeta) = 102 THEN to_char(SUM(ttc.monto_total_transaccion),'$99G999G999')
+    ELSE '$0'
+    END) AS "MONTO_TOTAL_AVANCES"   
+,CASE 
+    WHEN ttc.cod_tptran_tarjeta = 103 THEN COUNT(nro_transaccion)
+    ELSE 0 
+    END AS "SUPERAVANCES_VIGENTES"
+,TRIM(CASE 
+    WHEN TO_CHAR(ttc.cod_tptran_tarjeta) = 103 THEN to_char(SUM(ttc.monto_total_transaccion),'$99G999G999')
+    ELSE '$0'
+    END) AS "MONTO_TOTAL_SUPERAVANCES" 
+FROM CLIENTE c JOIN REGION R ON (c.cod_region = R.cod_region)
+    JOIN provincia P ON (c.cod_region=P.cod_region) AND (c.COD_PROVINCIA = P.COD_PROVINCIA)
+    JOIN comuna COM ON (P.cod_region = COM.cod_region) AND (P.COD_PROVINCIA = COM.COD_PROVINCIA) AND (c.COD_COMUNA = COM.COD_COMUNA)
+    JOIN tarjeta_cliente TC ON (c.numrun=TC.numrun)
+    FULL JOIN transaccion_tarjeta_cliente ttc  ON (TC.nro_tarjeta=ttc.nro_tarjeta) 
+
+GROUP BY c.numrun,c.dvrun,c.pnombre,c.snombre,c.appaterno,c.apmaterno,c.direccion,p.nombre_provincia, r.nombre_region,ttc.cod_tptran_tarjeta,ttc.id_sucursal
+
+ORDER BY R.nombre_region ASC, C.appaterno ASC;
+
+
+
+--CASO 6 informe 2 
+
+SELECT
+sr.id_sucursal AS "ID_SUCURSAL"
+, UPPER(r.nombre_region) AS "REGION"
+, p.nombre_provincia AS "PROVINCIA"
+, co.nombre_comuna AS "COMUNA"
+, sr.direccion AS "DIRECCIÓN"
+
+,TRIM(CASE 
+    WHEN TTC.cod_tptran_tarjeta IN 101 THEN COUNT(nro_transaccion)
+    ELSE 0 
+    END) AS "COMPRAS_VIGENTES"
+,TRIM(CASE WHEN to_char(ttc.cod_tptran_tarjeta) = 101 THEN to_char(SUM(ttc.monto_total_transaccion),'$99G999G999')
+    ELSE '$0'
+    END) AS "MONTO_TOTAL_COMPRAS"  
+
+,TRIM(CASE 
+    WHEN ttc.cod_tptran_tarjeta = 102 THEN COUNT(nro_transaccion)
+    ELSE 0 
+    END) AS "AVANCES_VIGENTES"
+,TRIM(CASE WHEN to_char(ttc.cod_tptran_tarjeta) = 102 THEN to_char(SUM(ttc.monto_total_transaccion),'$99G999G999')
+    ELSE '$0'
+    END) AS "MONTO_TOTAL_AVANCES"   
+
+,TRIM(CASE 
+    WHEN ttc.cod_tptran_tarjeta = 103 THEN COUNT(nro_transaccion)
+    ELSE 0 
+    END) AS "SUPERAVANCES_VIGENTES"
+,TRIM(CASE WHEN to_char(ttc.cod_tptran_tarjeta) = 103 THEN to_char(SUM(ttc.monto_total_transaccion),'$99G999G999')
+    ELSE '$0'
+    END) AS "MONTO_TOTAL_SUPERAVANCES"    
+
+FROM sucursal_retail SR JOIN region R ON (SR.cod_region = R.cod_region)
+    JOIN provincia P ON (SR.cod_region=P.cod_region) AND (SR.cod_provincia = P.cod_provincia)
+    JOIN comuna CO ON (P.cod_region = CO.cod_region) AND (P.cod_provincia = CO.cod_provincia) AND (SR.COD_COMUNA = CO.COD_COMUNA)
+    FULL JOIN transaccion_tarjeta_cliente ttc  ON (SR.id_sucursal=ttc.id_sucursal) 
+
+GROUP BY sr.id_sucursal,sr.direccion, p.nombre_provincia,r.nombre_region,co.nombre_comuna,ttc.cod_tptran_tarjeta
+
+ORDER BY r.nombre_region ASC, SR.id_sucursal ASC;
